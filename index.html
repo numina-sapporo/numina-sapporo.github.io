@@ -54,7 +54,7 @@ a{color:var(--gold)}
     rgba(5,5,10,.34) 66%, rgba(5,5,10,0) 84%);
   transition:opacity 1.4s ease .25s;
 }
-body.pre #scrim{opacity:0}
+html.pre #scrim{opacity:0}
 
 /* ══ 流れる文字 ══ */
 .doc{position:relative;z-index:1}
@@ -116,9 +116,10 @@ body.pre #scrim{opacity:0}
 /* ── 収束が終わるまで文字は伏せておく（JSが転べば最初から見えている） ── */
 .hero > *{transition:opacity 1.15s ease,transform 1.15s cubic-bezier(.2,.7,.2,1)}
 .veil{transition:opacity 1.3s ease}
-body.pre .hero > *{opacity:0}
-body.pre .hero > *:not(.down){transform:translateY(18px)}
-body.pre .veil{opacity:0}
+/* 幕は <html> に掛ける。<head> の時点で付けたいので body では間に合わない */
+html.pre .hero > *{opacity:0}
+html.pre .hero > *:not(.down){transform:translateY(18px)}
+html.pre .veil{opacity:0}
 .hero h1       {transition-delay:.05s}
 .hero .rule    {transition-delay:.30s}
 .hero .kind    {transition-delay:.36s}
@@ -300,6 +301,22 @@ footer .colophon{
   .hero > *,.veil{transition:none}
 }
 </style>
+
+<script>
+/* ── 幕を先に下ろす ────────────────────────────────────────────
+   文字を伏せるのは<head>のここで済ませる。本文末尾でやると、
+   スクリプトが走るまでの一瞬だけ素の文字が見えてしまう。
+
+   fail-openは壊さない。伏せるのはJSが動いたときだけであり、
+   JSが無い環境ではこの一行が走らないので文字は最初から見えたまま。
+   万一この後の本体が転んだ場合も、下の保険が幕を上げる。        */
+(() => {
+  const 根 = document.documentElement;
+  根.classList.add("pre");
+  /* 通常は3〜4秒で開く。ここは「本体が死んだとき」だけのための最後の綱 */
+  setTimeout(() => 根.classList.remove("pre"), 8000);
+})();
+</script>
 </head>
 <body>
 
@@ -1211,7 +1228,7 @@ return new kd(this.curr.time,a,b)};$jscomp.global.Object.defineProperties(H.prot
     開いた = true;
     息 = true;                        // ここから七政が息をはじめる
     定盤.style.opacity = "1";
-    document.body.classList.remove("pre");
+    document.documentElement.classList.remove("pre");
     盤を描く(chart, "灯");            // 出揃ったので相を引く
     据える();
     if (!静穏) 脈();
@@ -1267,7 +1284,8 @@ return new kd(this.curr.time,a,b)};$jscomp.global.Object.defineProperties(H.prot
     刻む(t);
   }
 
-  document.body.classList.add("pre");
+  /* <head>で既に付けてあるが、念のため（二度付けても害はない） */
+  document.documentElement.classList.add("pre");
 
   if (静穏){
     開く();
